@@ -1,83 +1,61 @@
-import {
-  createAsyncThunk,
-  createEntityAdapter,
-  createSlice,
-} from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// Async Thunks
-export const getProduct = createAsyncThunk(
-  "product/getProduct",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await axios.get("/products");
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || "Gagal mengambil produk");
-    }
-  }
-);
+export const getProduct = createAsyncThunk("product/getProduct", async () => {
+  const response = await axios.get("/products");
+  return response.data;
+});
 
 export const getProductByCategory = createAsyncThunk(
   "product/getProductByCategory",
-  async (category, { rejectWithValue }) => {
-    try {
-      const response = await axios.get(`/products?category_id=${category}`);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || "Gagal mengambil produk berdasarkan kategori");
-    }
+  async (category) => {
+    const response = await axios.get(`/products?category_id=${category}`);
+    return response.data;
   }
 );
 
-// Entity Adapter
-const productEntity = createEntityAdapter({
-  selectId: (product) => product.id,
-});
-
-// Product Slice
 const productSlice = createSlice({
   name: "product",
-  initialState: productEntity.getInitialState({
+  initialState: {
+    data: null,
     loading: false,
     error: null,
-    filteredData: null, // Untuk menyimpan hasil filter kategori
-  }),
+  },
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // Get All Products
       .addCase(getProduct.pending, (state) => {
         state.loading = true;
         state.error = null;
+        state.data = null;
       })
       .addCase(getProduct.fulfilled, (state, action) => {
-        productEntity.setAll(state, action.payload);
+        state.data = action.payload;
         state.loading = false;
+        state.error = null;
       })
       .addCase(getProduct.rejected, (state, action) => {
+        state.error = action.error.message;
         state.loading = false;
-        state.error = action.payload;
+        state.data = null;
       })
-
-      // Get Products by Category
+      // get product by category
       .addCase(getProductByCategory.pending, (state) => {
         state.loading = true;
         state.error = null;
+        state.data = null;
       })
       .addCase(getProductByCategory.fulfilled, (state, action) => {
-        state.filteredData = action.payload;
+        state.data = action.payload;
         state.loading = false;
+        state.error = null;
       })
       .addCase(getProductByCategory.rejected, (state, action) => {
+        state.error = action.error.message;
         state.loading = false;
-        state.error = action.payload;
+        state.data = null;
       });
   },
 });
-
-export const productSelectors = productEntity.getSelectors(
-  (state) => state.product
-);
 
 export default productSlice.reducer;
