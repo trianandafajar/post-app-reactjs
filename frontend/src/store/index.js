@@ -9,11 +9,4 @@ export const store = configureStore({
     product: productReducer,
     cart: cartReducer,
   },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: false, // Matikan peringatan untuk data non-serializable
-    }),
-  devTools: process.env.NODE_ENV !== "production", // Hanya aktif di development
 });
-
-export default store;
