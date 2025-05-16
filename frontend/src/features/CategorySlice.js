@@ -5,31 +5,51 @@ import {
 } from "@reduxjs/toolkit";
 import axios from "axios";
 
+// Thunk
 export const getAllCategory = createAsyncThunk(
   "category/getAllCategory",
   async () => {
-    const response = await axios.get("/categories");
-    return response.data;
+    const res = await axios.get("/categories");
+    return res.data;
   }
 );
 
-const categoryEntity = createEntityAdapter({
+// Adapter
+const categoryAdapter = createEntityAdapter({
   selectId: (category) => category.id,
 });
 
+// Slice
 const categorySlice = createSlice({
   name: "category",
-  initialState: categoryEntity.getInitialState(),
+  initialState: categoryAdapter.getInitialState({
+    loading: false,
+    error: null,
+  }),
   reducers: {},
   extraReducers: (builder) => {
-    builder.addCase(getAllCategory.fulfilled, (state, action) => {
-      categoryEntity.setAll(state, action.payload);
-    });
+    builder
+      .addCase(getAllCategory.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getAllCategory.fulfilled, (state, action) => {
+        state.loading = false;
+        categoryAdapter.setAll(state, action.payload);
+      })
+      .addCase(getAllCategory.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      });
   },
 });
 
-export const categorySelectors = categoryEntity.getSelectors(
-  (state) => state.category
-);
+// Selectors
+export const {
+  selectAll: selectAllCategory,
+  selectById: selectCategoryById,
+  selectIds: selectCategoryIds,
+} = categoryAdapter.getSelectors((state) => state.category);
 
+// Reducer
 export default categorySlice.reducer;
