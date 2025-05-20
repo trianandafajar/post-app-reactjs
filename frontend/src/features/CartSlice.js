@@ -30,11 +30,16 @@ export const updCart = createAsyncThunk("cart/updCart", async (data) => {
 export const saveOrder = createAsyncThunk("cart/saveOrder", async (data) => {
   await axios.post("/orders", data);
   const cartRes = await axios.get("/carts");
-  await Promise.all(cartRes.data.map((item) => axios.delete(`/carts/${item.id}`)));
+  await Promise.all(
+    cartRes.data.map((item) => axios.delete(`/carts/${item.id}`))
+  );
   return [];
 });
 
-export const setDetail = createAsyncThunk("cart/setDetail", async (data) => data);
+export const setDetail = createAsyncThunk(
+  "cart/setDetail",
+  async (data) => data
+);
 
 // Helper
 const getCartThunk = async () => {
